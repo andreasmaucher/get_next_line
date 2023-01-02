@@ -1,18 +1,24 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amaucher <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/01/02 16:13:52 by amaucher          #+#    #+#             */
+/*   Updated: 2023/01/02 16:13:56 by amaucher         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
 
-//if norm allows this function could be integrated into get next line
-char    *ft_free_tempstore(char *tempstore, char *buf)
+char	*ft_free_tempstore(char *tempstore, char *buf)
 {
-        char *bufandtemp;
+	char	*bufandtemp;
 
-        bufandtemp = ft_strjoin(tempstore, buf); //after multiple while loops tempstore will not be empty so we can't copy, but joining strings makes more sense
-        free (tempstore); // we need to empty the string before reading into it the new line;
-        // unsure if I need to free tempstore here or if I could also do this in get next line;
-        return (bufandtemp);
+	bufandtemp = ft_strjoin(tempstore, buf);
+	free(tempstore);
+	return (bufandtemp);
 }
 
 char	*ft_next(char *buf)
@@ -22,26 +28,18 @@ char	*ft_next(char *buf)
 	char	*line;
 
 	i = 0;
-	// find len of first line
-	while (buf[i] != '\0' && buf[i] != '\n') //maybe I could do a helper function for this by modifying strlen?
+	while (buf[i] != '\0' && buf[i] != '\n')
 		i++;
-	// if eol == \0, meaning we reached the end? return NULL
-	if (buf[i] == '\0') // previously: !buf[i]
+	if (buf[i] == '\0')
 	{
 		free(buf);
 		return (NULL);
 	}
-	// len of file - len of firstline + 1
 	line = ft_calloc((ft_strlen(buf) - i + 1), sizeof(char));
 	i++;
 	j = 0;
-	// line == buffer
 	while (buf[i] != '\0')
-        {
-		line[j] = buf[i];
-                i++;
-                j++;
-        }
+		line[j++] = buf[i++];
 	free(buf);
 	return (line);
 }
@@ -52,131 +50,78 @@ char	*ft_line(char *buf)
 	int		i;
 
 	i = 0;
-	// if no line return NULL
-	if (buf[i] == '\0') // previously: !buf[i]
+	if (buf[i] == '\0')
 		return (NULL);
-	// go to the eol, why are we doing this? could we use strlen instead if the info is only used for calloc?
 	while (buf[i] != '\0' && buf[i] != '\n')
 		i++;
-	// malloc to eol, why +2?
 	line = ft_calloc(i + 2, sizeof(char));
 	i = 0;
-	// copying buffer content into line, until end of line
 	while (buf[i] != '\0' && buf[i] != '\n')
 	{
 		line[i] = buf[i];
 		i++;
 	}
-	// if eol is \0 or \n, replace eol by \n
-	if (buf[i] && buf[i] == '\n')
+	if (buf[i] != '\0' && buf[i] == '\n')
 		line[i++] = '\n';
+	line[i++] = '\0';
 	return (line);
 }
 
-//linetempstore is the buf I send in ft_getnextline
-char    *ft_read_fromfile(int fd, char *linetempstore)
+char	*ft_read_fromfile(int fd, char *linetempstore)
 {
-        static char    *buf;
-        //int     count;
-        int     byte_read;
-        //int     BUFFER_SIZE;
+	char	*buf;
+	int		byte_read;
 
-        //count = 10; 
-        // check for a null pointer, which will be returned if sth went wrong, so this is to check if the pointer can be accessed without segfaulting
-                if (!linetempstore)
-                        linetempstore = ft_calloc(1, 1);
-                // malloc buffer, interesting that sizeof is a valid argument
-                buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
-        // count can be substituted with buf_size later, this is just for easier testing
-        byte_read = 1;
-        while (byte_read > 0) // as long as we did not reach EOF and ft_strchr did not reach \n read from file
-        {
-                // read returns number of byte reads by default (zero indicates end of file)
-                byte_read = read(fd, buf, BUFFER_SIZE);
-                // read returns -1 on error
-                        if (byte_read == -1)
-                {
-                        free(buf);
-                        return (NULL);
-                }
-                // ensure that the buffer is null terminated
-                buf[byte_read] = '\0';
-                linetempstore = ft_free_tempstore(linetempstore, buf);
-        // strchr will print everything of a string that comes after (incl.) the searchable character if it is found
-        // if the character is not found withing a string it returns null
-        // so we say here if we have read until end of line, please stop the while loop! this is our loop terminator
-        if (ft_strchr(buf, '\n'))
-	        break ;
-}
-        free(buf);
+	if (!linetempstore)
+		linetempstore = ft_calloc(1, 1);
+	buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
+	byte_read = 1;
+	while ((byte_read = read(fd, buf, BUFFER_SIZE)) > 0)
+	{
+		if (byte_read == -1)
+		{
+			free(buf);
+			return (NULL);
+		}
+		buf[byte_read] = '\0';
+		linetempstore = ft_free_tempstore(linetempstore, buf);
+		if (ft_strchr(buf, '\n') != NULL)
+			break ;
+	}
+	free(buf);
 	return (linetempstore);
 }
 
 char	*get_next_line(int fd)
 {
-        static char    *buf;
-        char    *line;
-        //int     BUFFER_SIZE;
+	static char	*buf;
+	char		*line;
 
-        if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
-                return (NULL);
-       // reading from a file until end of line into the buffer
-        buf = ft_read_fromfile(fd, buf);
-        if (!buf)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-        // not sure why we need this isn't buf already a perfect line, just technical?
-        line = ft_line(buf);
-        // 
-        buf = ft_next(buf);
-        return (line);
+	buf = ft_read_fromfile(fd, buf);
+	if (!buf)
+		return (NULL);
+	line = ft_line(buf);
+	buf = ft_next(buf);
+	return (line);
 }
 /*
 int main()
 {
-  int fd;
-  int ret;
-  char *line;
+	int fd;
+	char *line;
   
-  fd = open("test.txt", O_RDONLY);
-  ret = 1;
-  while (ret > 0)
-  {
-    ret = get_next_line(fd);
-    printf("ret = [%i]\t[%s]", ret, line);
-    //free(line);
-  }
-  return (ret);
-}
-
-int	main()
-{
-int ptr;
- // Opening file in reading mode to get the FD
- ptr = open("test.txt", O_RDONLY);
- if (ptr == 0)
-      printf("file can't be opened \n");
-printf("%s",get_next_line(ptr));
-}
-
-
-// setup for testing, probably I need a while loop to see different line
-int	main()
-{
-int fd;
-static char    *buf;
-        char    *line;
- // Opening file in reading mode to get the FD
- fd = open("test.txt", O_RDONLY);
- if (fd == 0)
-      printf("file can't be opened \n");
-//printf("%s",get_next_line(ptr));
-        buf = ft_read_fromfile(fd, buf);
-        printf("%s\n", buf);
-        line = ft_line(buf);
-        printf("%s\n", line);
-        buf = ft_next(buf);
-        printf("%s\n", buf);
-        //return (line);
-        printf("%s\n", line);
+	fd = open("test.txt", O_RDONLY);
+	if (fd == 0)
+      		printf("file can't be opened \n");
+	while (1) // this is just to keep a loop open and we end it when we reached EOF
+	{
+	line = get_next_line(fd);
+ 	if (line == NULL)
+   	 break;
+   	printf("%s", line);
+   	free(line);
+ 	}
 }
 */

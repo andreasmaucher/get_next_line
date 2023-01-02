@@ -1,9 +1,17 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amaucher <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/01/02 16:14:11 by amaucher          #+#    #+#             */
+/*   Updated: 2023/01/02 16:14:12 by amaucher         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-//helper functions
+#include "get_next_line.h"
+
 void	ft_bzero(void *s, size_t n)
 {
 	char	*str;
@@ -39,7 +47,6 @@ size_t	ft_strlen(const char *theString)
 	return (i);
 }
 
-// helper function
 char	*ft_strchr(const char *string, int searchedChar )
 {
 	char	*str;
@@ -52,8 +59,7 @@ char	*ft_strchr(const char *string, int searchedChar )
 	else
 		return (NULL);
 }
-// helper function
-// strjoin joins two strings into a new string joinedstr
+
 char	*ft_strjoin(char const *s1, char const *s2)
 {
 	int		joined_len;
