@@ -4,16 +4,17 @@
 #include <stdlib.h>
 #include "get_next_line.h"
 
+//if norm allows this function could be integrated into get next line
 char    *ft_free_tempstore(char *tempstore, char *buf)
 {
         char *bufandtemp;
 
-        bufandtemp = ft_strjoin(tempstore, buf); //not sure yet, why we join strings and don't copy, since tempstore is empty in the beginning
+        bufandtemp = ft_strjoin(tempstore, buf); //after multiple while loops tempstore will not be empty so we can't copy, but joining strings makes more sense
         free (tempstore); // we need to empty the string before reading into it the new line;
+        // unsure if I need to free tempstore here or if I could also do this in get next line;
         return (bufandtemp);
 }
 
-// not self_made!
 char	*ft_next(char *buf)
 {
 	int		i;
@@ -22,10 +23,10 @@ char	*ft_next(char *buf)
 
 	i = 0;
 	// find len of first line
-	while (buf[i] && buf[i] != '\n')
+	while (buf[i] != '\0' && buf[i] != '\n') //maybe I could do a helper function for this by modifying strlen?
 		i++;
-	// if eol == \0 return NULL
-	if (!buf[i])
+	// if eol == \0, meaning we reached the end? return NULL
+	if (buf[i] == '\0') // previously: !buf[i]
 	{
 		free(buf);
 		return (NULL);
@@ -35,13 +36,16 @@ char	*ft_next(char *buf)
 	i++;
 	j = 0;
 	// line == buffer
-	while (buf[i])
-		line[j++] = buf[i++];
+	while (buf[i] != '\0')
+        {
+		line[j] = buf[i];
+                i++;
+                j++;
+        }
 	free(buf);
 	return (line);
 }
 
-// not self-made!
 char	*ft_line(char *buf)
 {
 	char	*line;
@@ -49,16 +53,16 @@ char	*ft_line(char *buf)
 
 	i = 0;
 	// if no line return NULL
-	if (!buf[i])
+	if (buf[i] == '\0') // previously: !buf[i]
 		return (NULL);
-	// go to the eol
-	while (buf[i] && buf[i] != '\n')
+	// go to the eol, why are we doing this? could we use strlen instead if the info is only used for calloc?
+	while (buf[i] != '\0' && buf[i] != '\n')
 		i++;
-	// malloc to eol
+	// malloc to eol, why +2?
 	line = ft_calloc(i + 2, sizeof(char));
 	i = 0;
-	// line = buffer
-	while (buf[i] && buf[i] != '\n')
+	// copying buffer content into line, until end of line
+	while (buf[i] != '\0' && buf[i] != '\n')
 	{
 		line[i] = buf[i];
 		i++;
@@ -69,22 +73,23 @@ char	*ft_line(char *buf)
 	return (line);
 }
 
+//linetempstore is the buf I send in ft_getnextline
 char    *ft_read_fromfile(int fd, char *linetempstore)
 {
-        char    *buf;
+        static char    *buf;
         //int     count;
         int     byte_read;
-        int     BUFFER_SIZE = 30;
+        //int     BUFFER_SIZE;
 
         //count = 10; 
-        // malloc if res dont exist
+        // check for a null pointer, which will be returned if sth went wrong, so this is to check if the pointer can be accessed without segfaulting
                 if (!linetempstore)
                         linetempstore = ft_calloc(1, 1);
-                // malloc buffer
+                // malloc buffer, interesting that sizeof is a valid argument
                 buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
         // count can be substituted with buf_size later, this is just for easier testing
         byte_read = 1;
-        while (byte_read > 0) // not sure yet, why we need this loop
+        while (byte_read > 0) // as long as we did not reach EOF and ft_strchr did not reach \n read from file
         {
                 // read returns number of byte reads by default (zero indicates end of file)
                 byte_read = read(fd, buf, BUFFER_SIZE);
@@ -111,18 +116,21 @@ char	*get_next_line(int fd)
 {
         static char    *buf;
         char    *line;
-        int     BUFFER_SIZE = 30;
+        //int     BUFFER_SIZE;
 
         if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
-		return (NULL);
+                return (NULL);
+       // reading from a file until end of line into the buffer
         buf = ft_read_fromfile(fd, buf);
         if (!buf)
 		return (NULL);
+        // not sure why we need this isn't buf already a perfect line, just technical?
         line = ft_line(buf);
+        // 
         buf = ft_next(buf);
         return (line);
 }
-
+/*
 int main()
 {
   int fd;
@@ -139,7 +147,7 @@ int main()
   }
   return (ret);
 }
-/*
+
 int	main()
 {
 int ptr;
