@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 char	*ft_free_tempstore(char *tempstore, char *buf)
 {
@@ -96,34 +96,15 @@ char	*ft_read_fromfile(int fd, char *linetempstore)
 
 char	*get_next_line(int fd)
 {
-	static char	*buf;
+	static char	*buf[256];
 	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd > 256)
 		return (NULL);
-	buf = ft_read_fromfile(fd, buf);
-	if (!buf)
+	buf[fd] = ft_read_fromfile(fd, buf[fd]);
+	if (!buf[fd])
 		return (NULL);
-	line = ft_line(buf);
-	buf = ft_rest(buf);
+	line = ft_line(buf[fd]);
+	buf[fd] = ft_rest(buf[fd]);
 	return (line);
 }
-/*
-int main()
-{
-	int fd;
-	char *line;
-  
-	fd = open("test.txt", O_RDONLY);
-	if (fd == 0)
-      		printf("file can't be opened \n");
-	while (1) // this is just to keep a loop open and we end it when we reached EOF
-	{
-	line = get_next_line(fd);
- 	if (line == NULL)
-   	 break;
-   	printf("%s", line);
-   	free(line);
- 	}
-}
-*/
