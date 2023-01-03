@@ -21,7 +21,7 @@ char	*ft_free_tempstore(char *tempstore, char *buf)
 	return (bufandtemp);
 }
 
-char	*ft_next(char *buf)
+char	*ft_rest(char *buf)
 {
 	int		i;
 	int		j;
@@ -76,17 +76,25 @@ char	*ft_read_fromfile(int fd, char *linetempstore)
 		linetempstore = ft_calloc(1, 1);
 	buf = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
 	byte_read = 1;
-	while ((byte_read = read(fd, buf, BUFFER_SIZE)) > 0)
+	while (byte_read > 0)
 	{
+		byte_read = read(fd, buf, BUFFER_SIZE); // could add ft_strrchr
 		if (byte_read == -1)
 		{
 			free(buf);
+			free(linetempstore);
 			return (NULL);
 		}
 		buf[byte_read] = '\0';
 		linetempstore = ft_free_tempstore(linetempstore, buf);
 		if (ft_strchr(buf, '\n') != NULL)
 			break ;
+	}
+	if (byte_read == -1)
+	{
+		free(buf);
+		free(linetempstore);
+		return (NULL);
 	}
 	free(buf);
 	return (linetempstore);
@@ -99,11 +107,12 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
+	// if ft_strchr finds /n to be more efficient
 	buf = ft_read_fromfile(fd, buf);
 	if (!buf)
 		return (NULL);
 	line = ft_line(buf);
-	buf = ft_next(buf);
+	buf = ft_rest(buf);
 	return (line);
 }
 /*

@@ -14,15 +14,14 @@
 
 void	ft_bzero(void *s, size_t n)
 {
-	char	*str;
-	size_t	i;
+	unsigned char	*p;
 
-	str = (char *)s;
-	i = 0;
-	while (i < n)
+	p = s;
+	while (n > 0)
 	{
-		str[i] = '\0';
-		i++;
+		*p = '\0';
+		p++;
+		n--;
 	}
 }
 
@@ -37,12 +36,12 @@ void	*ft_calloc(size_t elementCount, size_t elementSize)
 	return (res);
 }
 
-size_t	ft_strlen(const char *theString)
+size_t	ft_strlen(const char *s)
 {
 	int	i;
 
 	i = 0;
-	while (theString[i])
+	while (s[i] != '\0')
 		i++;
 	return (i);
 }
@@ -62,28 +61,28 @@ char	*ft_strchr(const char *string, int searchedChar )
 
 char	*ft_strjoin(char const *s1, char const *s2)
 {
-	int		joined_len;
-	char	*joinedstr;
-	int		i;
-	int		j;
+	size_t	i;
+	size_t	b;
+	size_t	new_len;
+	char	*new;
 
 	i = 0;
-	joined_len = ft_strlen(s1) + ft_strlen(s2);
-	joinedstr = malloc(sizeof(char) * (joined_len + 1));
-	if (!joinedstr || !s1 || !s2)
+	b = 0;
+	new_len = ft_strlen(s1) + ft_strlen(s2);
+	new = malloc(sizeof(char) * (new_len + 1));
+	if (new == NULL)
 		return (NULL);
-	while (s1[i] != 0)
+	while (s1[i] != '\0')
 	{
-		joinedstr[i] = s1[i];
+		new[i] = s1[i];
 		i++;
 	}
-	j = 0;
-	while (s2[j] != 0)
+	while (s2[b] != '\0')
 	{
-		joinedstr[i] = s2[j];
+		new[i] = s2[b];
 		i++;
-		j++;
+		b++;
 	}
-        joinedstr[joined_len] = '\0';
-	return (joinedstr);
+	new[i] = '\0';
+	return (new);
 }
