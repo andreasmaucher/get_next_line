@@ -12,7 +12,6 @@
 
 #ifndef GET_NEXT_LINE_BONUS_H
 # define GET_NEXT_LINE_BONUS_H
-# define BUF_SIZE
 
 # include <limits.h>
 # include <unistd.h>
@@ -21,6 +20,10 @@
 # include <stdlib.h>
 # include <sys/types.h>
 # include <sys/uio.h>
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 20
+# endif
 
 char	*get_next_line(int fd);
 char	*ft_strchr(const char *string, int searchedChar );
